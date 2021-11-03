@@ -67,6 +67,6 @@ do {
   } while (!rateToReceive);
 
   resultOfChanging = rateToChange*UAH_RATE/rateToReceive*amountToChange;
-  alert(`Ви отримаєте ${resultOfChanging.toFixed(2)} ${currencyToReceive.toUpperCase()}`);
-  weAreWorking = confirm("Проведемо операцію ще раз?");
+  alert(`Ви отримаєте ${resultOfChanging.toFixed(2)} ${currencyToReceive}`);
+  weAreWorking = confirm('Проведемо операцію ще раз?');
 } while (weAreWorking);
