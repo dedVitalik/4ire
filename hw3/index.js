@@ -33,15 +33,11 @@ const filterBy = (inputArray, typeOfData) => {
   if (Array.isArray(inputArray) && allDataTypes.includes(typeOfData)) {
 
     return inputArray.filter((element) => {
-      if (typeOfData === 'null') {
-        return element !== null
-      }
-      return ((typeof element) !== typeOfData);
+      return typeOfData === 'null' ? element !== null : typeof element !== typeOfData
     });
-    
     }
     console.log ('Не вірні вхідні дані')
     }
 
     const testArray = [null, 'word', [1, 2], 22, {name: 'Jack', age: 44}, undefined, 1n, true, NaN, Infinity, Symbol('f')];
-    console.log(filterBy(testArray, 'null'));
+    console.log(filterBy(testArray, 'number'));
