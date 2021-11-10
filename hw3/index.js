@@ -18,8 +18,8 @@ object
 
 Відповідно ми:
 
-1. Не визначаємо, наприклад, масив, чи функцію, як окремий тип даних, а відносимо до об'єктів
-2. Обробляємо помилку JS при якій typeof null видає об'єкт
+1. Обробляємо помилку JS при якій typeof null видає об'єкт
+2. Не визначаємо, наприклад, масив, чи функцію, як окремий тип даних, а відносимо до об'єктів
 
 */
 
@@ -33,14 +33,20 @@ const filterBy = (inputArray, typeOfData) => {
 
   if (Array.isArray(inputArray) && allDataTypes.includes(typeOfData)) {
 
-    return inputArray.filter((element) => typeOfData === 'null'
-                                          ? element !== null
-                                          : typeOfData === 'object'
-                                            ? typeof element !== typeOfData || element === null
-                                            : typeof element !== typeOfData);
+    return inputArray.filter((element) => {
+      switch (typeOfData) {
+        case 'null':
+          return element !== null;
+        case 'object':
+          return typeof element !== typeOfData || element === null
+        default:
+          return typeof element !== typeOfData
+      }
+    });
+
   }
   console.log ('Не вірні вхідні дані');
 };
 
-const testArray = [null, 'word', [1, 2], 22, {name: 'Jack', age: 44}, undefined, 1n, true, NaN, Infinity, Symbol('f')];
-console.log(filterBy(testArray, 'object'));
+// const testArray = [null, 'word', [1, 2], 22, {name: 'Jack', age: 44}, undefined, 1n, true, NaN, Infinity, Symbol('f')];
+// console.log(filterBy(testArray, null));
