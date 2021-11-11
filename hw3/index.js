@@ -1,4 +1,4 @@
-/*
+/* 
 
 * (!) примітка щодо логіки трактування ТЗ:
 
@@ -48,5 +48,6 @@ const filterBy = (inputArray, typeOfData) => {
   console.log ('Не вірні вхідні дані');
 };
 
+// для перевірки ДЗ:
 // const testArray = [null, 'word', [1, 2], 22, {name: 'Jack', age: 44}, undefined, 1n, true, NaN, Infinity, Symbol('f')];
 // console.log(filterBy(testArray, null));
