@@ -1,23 +1,16 @@
 /*
-
-ЕІ - енергетична інфраструктура
-Базова одиниця виміру - МВт (мегават)
-
+- ЕІ - енергетична інфраструктура
+- Базова одиниця виміру - МВт / MW (мегават)
+- енергію завжди транспортуємо за найнижчою ціною, не залежно купувати треба чи продавати
+- максимальну кількість об'єктів ЕІ для рандома підібрано з розрахунку, щоб при оновленнях сторінки
+ми могли отримати всі варіанти: коли баланси дня ночі позитивні, негативні, різні;
+коли кількість ліній електропередач є надлишковою і коли їх не вистачає
 */
 
-const DAY_LENGTH = 12;
+const DAY_LENGTH = 9,
+  PRICE_PER_MW = 120;
 
-// функція, що повертає випадкове ціле число в заданому проміжку
-const getRandIntBetween = function (from, to) {
-  const rand = from + Math.random() * (to + 1 - from);
-  return Math.floor(rand);
-};
-
-/*
-масив з типами енергетичної інфраструктури:
-кожен елемент масиву об'єкт, що описує тип одиниці енерг. інфраструктури
-*/
-
+// масив з типами об'єктів ЕІ, включає в себе також значення скільки таких об'єктів ЕІ може бути в місті макс.
 const typesOfEnergyObjects = [
   {
     type: 'station',
@@ -44,11 +37,16 @@ const typesOfEnergyObjects = [
   },
 ];
 
-// функція, що повертає об'єкт енергетичної інфраструктури
+// допоміжна функція, повертає випадкове ціле число в заданому проміжку
+const getRandIntBetween = function (from, to) {
+  const rand = from + Math.random() * (to + 1 - from);
+  return Math.floor(rand);
+};
+
+// допоміжна функція, генерує об'єкт ЕІ за його типом
 const renderEnergyObj = (typeOfEnergyObj) => {
   switch (typeOfEnergyObj.type) {
     case 'station':
-      const currentPowerLimit = getRandIntBetween(1, typeOfEnergyObj.powerLimit);
       return {
         type: typeOfEnergyObj.type,
         power: getRandIntBetween(1, typeOfEnergyObj.powerLimit),
@@ -90,53 +88,58 @@ const renderEnergyObj = (typeOfEnergyObj) => {
   }
 };
 
-// створюємо енергетичну інфраструктуру міста (об'єкт), вигляд:
-// stations: [{}{}{}]
-// houses: [{}{}{}]....
-const cityEnergyStructure = {};
-typesOfEnergyObjects.forEach((type) => {
-  const numberOfObjectsThisType = getRandIntBetween(1, type.numberLimit);
-  const itemsThisType = [];
-  for (let i = 0; i < numberOfObjectsThisType; i++) {
-    itemsThisType.push(renderEnergyObj(type));
-  }
-  // лінії електропередач одразу сортуємо в порядку зростання ціни
-  if (type.type === 'line') {
-    itemsThisType.sort((lineA, lineB) => (lineA.price > lineB.price ? 1 : -1));
-  }
-  cityEnergyStructure[`${type.type}s`] = itemsThisType;
-});
-
-console.log(cityEnergyStructure);
-
-// функція, що повертає баланс нічного та денного виробництва/споживання
-const getEnergyBalance = (...energyStructureItems) => {
+// допоміжна функція, що повертає баланс нічного та денного виробництва/споживання
+const getEnergyBalance = (energyStructureItems) => {
   const energyBalance = {
     dayPowerBalance: 0,
     nightPowerBalance: 0,
   };
-  energyStructureItems.forEach((items) => {
-    items.forEach((item) => {
-      energyBalance.dayPowerBalance += item.dayPower();
-      energyBalance.nightPowerBalance += item.nightPower();
-    });
+  energyStructureItems.forEach((item) => {
+    energyBalance.dayPowerBalance += item.dayPower();
+    energyBalance.nightPowerBalance += item.nightPower();
   });
-  energyBalance.dayPowerBalance = Math.round(energyBalance.dayPowerBalance * 1000) / 1000;
-  energyBalance.nightPowerBalance = Math.round(energyBalance.nightPowerBalance * 1000) / 1000;
   return energyBalance;
 };
 
-let cityPowerBalance = getEnergyBalance(
-  cityEnergyStructure.stations,
-  cityEnergyStructure.sunStations,
-  cityEnergyStructure.houses
-);
-console.log(cityPowerBalance);
+/*
+функція генерації ЕІ міста, схематично (результат) виглядає так:
+stations: [{}{}{}],
+sunStations: [{}{}{}],
+houses: [{}{}{}],
+lines:: [{}{}{}],
+dayPowerBalance: x,
+nightPowerBalance: y
+*/
+const getCityEnergyStructure = (typesOfEnergyObjects) => {
+  const cityEnergyStructure = {
+    dayPowerBalance: 0,
+    nightPowerBalance: 0,
+  };
+  typesOfEnergyObjects.forEach((type) => {
+    const numberOfObjectsThisType = getRandIntBetween(1, type.numberLimit);
+    const itemsThisType = [];
+    for (let i = 0; i < numberOfObjectsThisType; i++) {
+      itemsThisType.push(renderEnergyObj(type));
+    }
+    // лінії електропередач одразу сортуємо в порядку зростання ціни
+    if (type.type === 'line') {
+      itemsThisType.sort((lineA, lineB) => (lineA.price > lineB.price ? 1 : -1));
+    } else {
+      cityEnergyStructure.dayPowerBalance += getEnergyBalance(itemsThisType).dayPowerBalance;
+      cityEnergyStructure.nightPowerBalance += getEnergyBalance(itemsThisType).nightPowerBalance;
+    }
+    cityEnergyStructure[`${type.type}s`] = itemsThisType;
+    cityEnergyStructure.dayPowerBalance = Math.round(cityEnergyStructure.dayPowerBalance * 1000) / 1000;
+    cityEnergyStructure.nightPowerBalance = Math.round(cityEnergyStructure.nightPowerBalance * 1000) / 1000;
+  });
+  return cityEnergyStructure;
+};
 
-// функція що повертає об'єкт з даними скільки можемо купити чи продати, та скільки це буде вартувати грошей
-const getProfit = (powerBalance, lines, length) => {
+// домоміжна, функція що повертає об'єкт з даними скільки можемо купити чи продати MBт/год,
+// скільки буде коштувати транспортування цієї кількості енергії, вартість цього обсягу енергії
+const getProfit = (powerBalance, lines, length, price) => {
   const energyResult = {};
-  energyResult.quantity = powerBalance * length;
+  energyResult.quantity = Math.round(powerBalance * length * 1000) / 1000;
   let profitable = false;
   if (powerBalance > 0) {
     profitable = true;
@@ -148,7 +151,6 @@ const getProfit = (powerBalance, lines, length) => {
     if (powerBalance >= lines[i].power) {
       powerBalance -= lines[i].power;
       pricePower += lines[i].power * lines[i].price;
-      console.log(i, powerBalance, pricePower);
     } else {
       pricePower += (lines[i].power - powerBalance) * lines[i].price;
       powerBalance = 0;
@@ -156,11 +158,53 @@ const getProfit = (powerBalance, lines, length) => {
     i += 1;
   }
   energyResult.profitable = profitable;
-  energyResult.cost = Math.round(pricePower * 1000) / 1000;
+  energyResult.transportCost = Math.round(length * pricePower * 1000) / 1000;
+  console.log();
+  energyResult.energyCost = Math.round(energyResult.quantity * price * 1000) / 1000;
   return energyResult;
 };
 
-// викликаємо функцію прорахунку денного павербеленс
+// Та да да дам, насолоджуємося результатами роботи функцій:
 
-let CityPowerDayProfitability = getProfit(cityPowerBalance.dayPowerBalance, cityEnergyStructure.lines, DAY_LENGTH);
-console.log(CityPowerDayProfitability);
+// генеруємо ЕІ міста та виводимо в консоль
+const cityEnergyStructure = getCityEnergyStructure(typesOfEnergyObjects);
+console.log(cityEnergyStructure);
+
+// рахуємоо профіти
+const cityPowerDayProfitability = getProfit(
+  cityEnergyStructure.dayPowerBalance,
+  cityEnergyStructure.lines,
+  DAY_LENGTH,
+  PRICE_PER_MW
+);
+
+const cityPowerNightProfitability = getProfit(
+  cityEnergyStructure.nightPowerBalance,
+  cityEnergyStructure.lines,
+  24 - DAY_LENGTH,
+  PRICE_PER_MW
+);
+
+// і виводимо в консоль
+console.log(
+  `Щодня місто ${cityPowerDayProfitability.profitable ? 'продаватиме' : 'купуватиме'} ${Math.abs(
+    cityPowerDayProfitability.quantity
+  )} МВт/год електроенергії, на суму ${Math.abs(
+    cityPowerDayProfitability.energyCost
+  )} грошових одиниць. Транспортні витрати при цьому складуть ${
+    cityPowerDayProfitability.transportCost
+  } грошових одиниць`
+);
+
+console.log(
+  `Щоночі місто ${cityPowerNightProfitability.profitable ? 'продаватиме' : 'купуватиме'} ${Math.abs(
+    cityPowerNightProfitability.quantity
+  )} МВт/год електроенергії, на суму ${Math.abs(
+    cityPowerNightProfitability.energyCost
+  )} грошових одиниць. Транспортні витрати при цьому складуть ${
+    cityPowerNightProfitability.transportCost
+  } грошових одиниць`
+);
+
+// P.S. транспортні витрати дня і ночі можуть бути однаковими або не пропорційні кількості транспортованої енергії
+// вдень та вночі у випадках, коли у нас нестача транспортних потужностей
