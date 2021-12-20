@@ -24,7 +24,7 @@ const operations = {
   minus: (num1, num2) => `${+num1 - +num2}`,
   divide: (num1, num2) => {
     num2 = num2 === '' ? 1 : num2;
-    return num2 == 0 ? 'На ноль неможна!' : `${+num1 / +num2}`;
+    return num2 == 0 ? 'На ноль неможна!!!' : `${+num1 / +num2}`;
   },
   multiply: (num1, num2) => {
     num2 = num2 === '' ? 1 : num2;
