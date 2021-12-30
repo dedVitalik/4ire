@@ -116,7 +116,7 @@ body {
   .film-popup {
     max-width: 900px;
     left: calc((100% - 900px) / 2);
-    min-height: 50vh;
+    min-height: initial;
   }
 }
 
