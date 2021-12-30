@@ -11,6 +11,12 @@ body {
   padding: 15px;
 }
 
+@media (min-width: 1200px) {
+  .main-content {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+}
+
 .film-poster {
   position: relative;
   height: 400px;
@@ -31,6 +37,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  z-index: -1;
 }
 
 .film-poster__info {
@@ -88,7 +95,7 @@ body {
   width: 90%;
   position: fixed;
   background-color: #292929;
-  top: 10vh;
+  top: 8vh;
   left: 5%;
   background-repeat: no-repeat;
   z-index: 3;
@@ -99,10 +106,17 @@ body {
     'header header'
     'poster content';
   grid-template-columns: 1fr 3fr;
-  grid-template-rows: 1fr 87%;
+  grid-template-rows: 1fr 88%;
   grid-column-gap: 10px;
   overflow-y: auto;
   border-radius: 4px;
+}
+
+@media (min-width: 1000px) {
+  .film-popup {
+    max-width: 900px;
+    left: calc((100% - 900px) / 2);
+  }
 }
 
 .film-popup__title {
